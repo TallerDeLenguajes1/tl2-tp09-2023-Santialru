@@ -3,10 +3,10 @@ using tp9.Models;
 namespace tp9.repos;
 public interface ITableroRepository
 {
-    Tablero CrearTablero(Tablero tablero);
-    Tablero ModificarTablero(int id, Tablero tablero);
-    Tablero ObtenerTableroPorId(int id);
-    List<Tablero> ListarTableros();
-    List<Tablero> ListarTablerosDeUsuario(int idUsuario);
-    void EliminarTablero(int id);
+    public void CrearTablero(Tablero tablero);
+    public void ModificarTablero(int id, Tablero tablero);
+    public Tablero ObtenerTableroPorId(int id);
+    public List<Tablero> ListarTableros();
+    public List<Tablero> ListarTablerosDeUsuario(int idUsuario);
+    public void EliminarTablero(int id);
 }

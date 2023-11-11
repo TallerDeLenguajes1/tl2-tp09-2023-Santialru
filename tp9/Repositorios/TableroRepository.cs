@@ -31,6 +31,38 @@ public class TableroRepository : ITableroRepository
         }
     }
     
-    
+    public void ModificarTablero(int id, Tablero tablero)
+    {
+        SQLiteConnection connection = new SQLiteConnection(cadenaConexion);
+        SQLiteCommand command = connection.CreateCommand();
+        command.CommandText =  $"UPDATE tablero SET id = '{tablero.Id1}', idUsuarioPropietario = '{tablero.IdUsuarioPropietario1}', nombre = '{tablero.Nombre1}', descripcion = '{tablero.Descripcion1}';";
+        connection.Open();
+        command.ExecuteNonQuery();
+        connection.Close();
+    }
+
+    public Tablero ObtenerTableroPorId(int idTablero)
+    {
+        SQLiteConnection connection = new SQLiteConnection(cadenaConexion);
+        var tablero = new Tablero();
+        SQLiteCommand command = connection.CreateCommand();
+        command.CommandText = $"SELECT * FROM tablero WHERE id = '{idTablero}';";
+        command.CommandText = "SELECT * FROM tablero WHERE id = @idTablero";
+        command.Parameters.Add(new SQLiteParameter("@idDirector", idTablero));
+        connection.Open();
+        using(SQLiteDataReader reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                tablero.Id1 = Convert.ToInt32(reader["id"]);
+                tablero.IdUsuarioPropietario1 = Convert.ToInt32(reader["idUsuarioPropietario"]);
+                tablero.Nombre1 = reader["nombre"].ToString();
+                tablero.Descripcion1 = reader["descripcion"].ToString();
+            }
+        }
+        connection.Close();
+
+        return (tablero);
+    }
     
 }

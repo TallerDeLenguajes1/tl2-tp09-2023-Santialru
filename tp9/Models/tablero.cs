@@ -6,13 +6,7 @@ private int IdUsuarioPropietario;
 private string Nombre;
 private string Descripcion;
 
-    public Tablero(int id, int idUsuarioPropietario, string nombre, string descripcion)
-    {
-        Id = id;
-        IdUsuarioPropietario = idUsuarioPropietario;
-        Nombre = nombre;
-        Descripcion = descripcion;
-    }
+    
 
     public int Id1 { get => Id; set => Id = value; }
     public int IdUsuarioPropietario1 { get => IdUsuarioPropietario; set => IdUsuarioPropietario = value; }
