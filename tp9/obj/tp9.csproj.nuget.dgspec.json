@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\cuent\\OneDrive\\Escritorio\\tallertp9\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj": {}
+    "C:\\Users\\santi\\OneDrive\\Escritorio\\tp9taller\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj": {}
   },
   "projects": {
-    "C:\\Users\\cuent\\OneDrive\\Escritorio\\tallertp9\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj": {
+    "C:\\Users\\santi\\OneDrive\\Escritorio\\tp9taller\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\cuent\\OneDrive\\Escritorio\\tallertp9\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj",
+        "projectUniqueName": "C:\\Users\\santi\\OneDrive\\Escritorio\\tp9taller\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj",
         "projectName": "tp9",
-        "projectPath": "C:\\Users\\cuent\\OneDrive\\Escritorio\\tallertp9\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj",
-        "packagesPath": "C:\\Users\\cuent\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\cuent\\OneDrive\\Escritorio\\tallertp9\\tl2-tp09-2023-Santialru\\tp9\\obj\\",
+        "projectPath": "C:\\Users\\santi\\OneDrive\\Escritorio\\tp9taller\\tl2-tp09-2023-Santialru\\tp9\\tp9.csproj",
+        "packagesPath": "C:\\Users\\santi\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\santi\\OneDrive\\Escritorio\\tp9taller\\tl2-tp09-2023-Santialru\\tp9\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\cuent\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\santi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net7.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\sdk\\7.0.302\\Sdks\\Microsoft.NET.Sdk.Web\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },

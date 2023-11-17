@@ -1,15 +1,7 @@
 namespace tp9.Models;
 public class Tarea
 {
-    public Tarea(int id, int idUsuarioPropietario, string nombre, string descripcion, string color, EstadoTarea estado)
-    {
-        Id = id;
-        IdUsuarioPropietario = idUsuarioPropietario;
-        Nombre = nombre;
-        Descripcion = descripcion;
-        Color = color;
-        Estado = estado;
-    }
+    
 
     private int id;
     private string nombre;

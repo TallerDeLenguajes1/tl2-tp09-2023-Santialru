@@ -1,5 +1,7 @@
 
 using System.Collections.Generic;
+using tp9.Models;
+
 namespace tp9.repos;
 public interface IUsuarioRepository
 {

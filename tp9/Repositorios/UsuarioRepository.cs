@@ -1,58 +1,119 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-namespace tp9.repos;
+using System.Data.SQLite;
+using tp9.Models;
 
-public class UsuarioRepository : IUsuarioRepository
+namespace tp9.repos
 {
-    private List<Usuario> usuarios; // Debes inicializar y mantener esta lista en la clase.
-
-    public UsuarioRepository()
+    public class UsuarioRepository
     {
-        // Inicializa la lista de usuarios.
-        usuarios = new List<Usuario>();
-    }
+        private string cadenaConexion = "Data Source=DB/kanban.db;Cache=Shared";
 
-    public Usuario CrearUsuario(Usuario usuario)
-    {
-        usuario.Id = GenerarIdUnico(); // Asignar un nuevo ID único.
-        usuarios.Add(usuario);
-        return usuario;
-    }
-
-    public Usuario ModificarUsuario(int id, Usuario usuario)
-    {
-        Usuario usuarioExistente = usuarios.FirstOrDefault(u => u.Id == id);
-        if (usuarioExistente != null)
+        public void CrearUsuario(Usuario usuario)
         {
-            usuarioExistente.NombreDeUsuario = usuario.NombreDeUsuario;
-            // Modificar otros campos si es necesario.
+            var query = "INSERT INTO usuario (nombre_de_usuario) VALUES (@nombreDeUsuario);";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@nombreDeUsuario", usuario.NombreDeUsuario);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
         }
-        return usuarioExistente;
-    }
 
-    public List<Usuario> ListarUsuarios()
-    {
-        return usuarios;
-    }
-
-    public Usuario ObtenerUsuarioPorId(int id)
-    {
-        return usuarios.FirstOrDefault(u => u.Id == id);
-    }
-
-    public void EliminarUsuario(int id)
-    {
-        Usuario usuarioExistente = usuarios.FirstOrDefault(u => u.Id == id);
-        if (usuarioExistente != null)
+        public void ModificarUsuario(int id, Usuario usuario)
         {
-            usuarios.Remove(usuarioExistente);
-        }
-    }
+            var query = "UPDATE usuario SET nombre_de_usuario = @nombreDeUsuario WHERE id = @id;";
 
-    private int GenerarIdUnico()
-    {
-        // Implementa lógica para generar un ID único, por ejemplo, basado en la fecha y hora actual.
-        return DateTime.Now.Millisecond;
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@nombreDeUsuario", usuario.NombreDeUsuario);
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
+        public List<Usuario> ListarUsuarios()
+        {
+            var query = "SELECT * FROM usuario;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+
+                List<Usuario> usuarios = new List<Usuario>();
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var usuario = new Usuario
+                        {
+                            Id = Convert.ToInt32(reader["id"]),
+                            NombreDeUsuario = reader["nombre_de_usuario"].ToString()
+                        };
+                        usuarios.Add(usuario);
+                    }
+                }
+
+                connection.Close();
+
+                return usuarios;
+            }
+        }
+
+        public Usuario ObtenerUsuarioPorId(int id)
+        {
+            var query = "SELECT * FROM usuario WHERE id = @id;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        var usuario = new Usuario
+                        {
+                            Id = Convert.ToInt32(reader["id"]),
+                            NombreDeUsuario = reader["nombre_de_usuario"].ToString()
+                        };
+                        return usuario;
+                    }
+                }
+
+                connection.Close();
+            }
+
+            return null;
+        }
+
+        public void EliminarUsuario(int id)
+        {
+            var query = "DELETE FROM usuario WHERE id = @id;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
     }
 }

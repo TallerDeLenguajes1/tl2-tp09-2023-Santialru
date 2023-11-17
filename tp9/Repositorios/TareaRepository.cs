@@ -1,76 +1,254 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-namespace tp9.repos;
+using System.Data.SQLite;
+using tp9.Models;
 
-public class TareaRepository : ITareaRepository
+namespace tp9.repos
 {
-    private List<Tarea> tareas; // Debes inicializar y mantener esta lista en la clase.
-
-    public TareaRepository()
+    public class TareaRepository
     {
-        // Inicializa la lista de tareas.
-        tareas = new List<Tarea>();
-    }
+        private string cadenaConexion = "Data Source=DB/kanban.db;Cache=Shared";
 
-    public Tarea CrearTareaEnTablero(int idTablero, Tarea tarea)
-    {
-        tarea.Id = GenerarIdUnico(); // Asignar un nuevo ID único.
-        tarea.IdTablero = idTablero;
-        tareas.Add(tarea);
-        return tarea;
-    }
-
-    public Tarea ModificarTarea(int id, Tarea tarea)
-    {
-        Tarea tareaExistente = tareas.FirstOrDefault(t => t.Id == id);
-        if (tareaExistente != null)
+        public Tarea CrearTarea(int idTablero, Tarea tarea)
         {
-            tareaExistente.Nombre = tarea.Nombre;
-            tareaExistente.Descripcion = tarea.Descripcion;
-            tareaExistente.Color = tarea.Color;
-            tareaExistente.Estado = tarea.Estado;
-            // Modificar otros campos si es necesario.
+            var query = "INSERT INTO tarea (nombre, descripcion, color, estado, id_usuario_propietario, id_tablero) " +
+                        "VALUES (@nombre, @descripcion, @color, @estado, @idUsuarioPropietario, @idTablero); " +
+                        "SELECT last_insert_rowid();";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@nombre", tarea.Nombre);
+                command.Parameters.AddWithValue("@descripcion", tarea.Descripcion);
+                command.Parameters.AddWithValue("@color", tarea.Color);
+                command.Parameters.AddWithValue("@estado", tarea.Estado.ToString());
+                command.Parameters.AddWithValue("@idUsuarioPropietario", tarea.IdUsuarioPropietario);
+                command.Parameters.AddWithValue("@idTablero", idTablero);
+
+                int tareaId = Convert.ToInt32(command.ExecuteScalar());
+
+                connection.Close();
+
+                tarea.Id = tareaId;
+                return tarea;
+            }
         }
-        return tareaExistente;
-    }
 
-    public Tarea ObtenerTareaPorId(int id)
-    {
-        return tareas.FirstOrDefault(t => t.Id == id);
-    }
-
-    public List<Tarea> ListarTareasAsignadasAUsuario(int idUsuario)
-    {
-        return tareas.Where(t => t.IdUsuarioAsignado == idUsuario).ToList();
-    }
-
-    public List<Tarea> ListarTareasDeTablero(int idTablero)
-    {
-        return tareas.Where(t => t.IdTablero == idTablero).ToList();
-    }
-
-    public void EliminarTarea(int idTarea)
-    {
-        Tarea tareaExistente = tareas.FirstOrDefault(t => t.Id == idTarea);
-        if (tareaExistente != null)
+        public void ModificarTarea(int id, Tarea tarea)
         {
-            tareas.Remove(tareaExistente);
-        }
-    }
+            var query = "UPDATE tarea SET nombre = @nombre, descripcion = @descripcion, " +
+                        "color = @color, estado = @estado, id_usuario_propietario = @idUsuarioPropietario " +
+                        "WHERE id = @id;";
 
-    public void AsignarUsuarioATarea(int idUsuario, int idTarea)
-    {
-        Tarea tarea = tareas.FirstOrDefault(t => t.Id == idTarea);
-        if (tarea != null)
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@nombre", tarea.Nombre);
+                command.Parameters.AddWithValue("@descripcion", tarea.Descripcion);
+                command.Parameters.AddWithValue("@color", tarea.Color);
+                command.Parameters.AddWithValue("@estado", tarea.Estado.ToString());
+                command.Parameters.AddWithValue("@idUsuarioPropietario", tarea.IdUsuarioPropietario);
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
+        public Tarea ObtenerTareaPorId(int idTarea)
         {
-            tarea.IdUsuarioAsignado = idUsuario;
-        }
-    }
+            var query = "SELECT * FROM tarea WHERE id = @id;";
 
-    private int GenerarIdUnico()
-    {
-        // Implementa lógica para generar un ID único, por ejemplo, basado en la fecha y hora actual.
-        return DateTime.Now.Millisecond;
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@id", idTarea);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        var tarea = new Tarea
+                        {
+                            Id = Convert.ToInt32(reader["id"]),
+                            Nombre = reader["nombre"].ToString(),
+                            Descripcion = reader["descripcion"].ToString(),
+                            Color = reader["color"].ToString(),
+                            Estado = Enum.Parse<EstadoTarea>(reader["estado"].ToString()),
+                            IdUsuarioPropietario = Convert.ToInt32(reader["id_usuario_propietario"])
+                        };
+                        return tarea;
+                    }
+                }
+
+                connection.Close();
+            }
+
+            return null;
+        }
+
+        public List<Tarea> ListarTareasDeUsuario(int idUsuario)
+        {
+            var query = "SELECT * FROM tarea WHERE id_usuario_propietario = @idUsuario;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+                List<Tarea> tareas = new List<Tarea>();
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var tarea = new Tarea
+                        {
+                            Id = Convert.ToInt32(reader["id"]),
+                            Nombre = reader["nombre"].ToString(),
+                            Descripcion = reader["descripcion"].ToString(),
+                            Color = reader["color"].ToString(),
+                            Estado = Enum.Parse<EstadoTarea>(reader["estado"].ToString()),
+                            IdUsuarioPropietario = Convert.ToInt32(reader["id_usuario_propietario"])
+                        };
+                        tareas.Add(tarea);
+                    }
+                }
+
+                connection.Close();
+
+                return tareas;
+            }
+        }
+
+        public List<Tarea> ListarTareasDeTablero(int idTablero)
+        {
+            var query = "SELECT * FROM tarea WHERE id_tablero = @idTablero;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@idTablero", idTablero);
+
+                List<Tarea> tareas = new List<Tarea>();
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var tarea = new Tarea
+                        {
+                            Id = Convert.ToInt32(reader["id"]),
+                            Nombre = reader["nombre"].ToString(),
+                            Descripcion = reader["descripcion"].ToString(),
+                            Color = reader["color"].ToString(),
+                            Estado = Enum.Parse<EstadoTarea>(reader["estado"].ToString()),
+                            IdUsuarioPropietario = Convert.ToInt32(reader["id_usuario_propietario"])
+                        };
+                        tareas.Add(tarea);
+                    }
+                }
+
+                connection.Close();
+
+                return tareas;
+            }
+        }
+
+        public void EliminarTarea(int idTarea)
+        {
+            var query = "DELETE FROM tarea WHERE id = @id;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@id", idTarea);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
+        public void AsignarUsuarioATarea(int idUsuario, int idTarea)
+        {
+            var query = "UPDATE tarea SET id_usuario_propietario = @idUsuario WHERE id = @idTarea;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@idUsuario", idUsuario);
+                command.Parameters.AddWithValue("@idTarea", idTarea);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
+        public void ActualizarTareaPorNombre(int id, string nuevoNombre)
+        {
+            var query = "UPDATE tarea SET nombre = @nuevoNombre WHERE id = @id;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@nuevoNombre", nuevoNombre);
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
+        public void ActualizarTareaPorEstado(int id, int nuevoEstado)
+        {
+            var query = "UPDATE tarea SET estado = @nuevoEstado WHERE id = @id;";
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@nuevoEstado", nuevoEstado.ToString());
+                command.Parameters.AddWithValue("@id", id);
+
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
+        public int GetCantidadTareasPorEstado(int estado)
+        {
+            var query = "SELECT COUNT(*) as cantidad FROM tarea WHERE estado = @estado;";
+            int cantidadTareas = 0;
+
+            using (SQLiteConnection connection = new SQLiteConnection(cadenaConexion))
+            {
+                connection.Open();
+                var command = new SQLiteCommand(query, connection);
+                command.Parameters.AddWithValue("@estado", estado);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        cantidadTareas = Convert.ToInt32(reader["cantidad"]);
+                    }
+                }
+
+                connection.Close();
+            }
+
+            return cantidadTareas;
+        }
     }
 }
